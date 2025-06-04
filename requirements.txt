@@ -13,6 +13,5 @@ imageio
 yacs
 tensorboardX
 onnx==1.18.0
-onnxscript==0.3.0
-onnxruntime-gpu==1.22.0
 onnxsim==0.4.36
+onnxruntime-gpu==1.22.0

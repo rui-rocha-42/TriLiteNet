@@ -58,11 +58,35 @@ def detect(opt):
     
     # Initialize ONNX Runtime session
     print(f"Loading ONNX model from {opt.weights}...")
-    session = ort.InferenceSession(opt.weights, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+    session_options = ort.SessionOptions()
+    session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    session = ort.InferenceSession(opt.weights, providers=["CUDAExecutionProvider", "CPUExecutionProvider"], session_options=session_options)
     print("Execution Providers:", session.get_providers())
     input_name = session.get_inputs()[0].name
     input_type = session.get_inputs()[0].type
+
+    # Determine if the model expects float16 inputs
+    use_fp16 = input_type == "tensor(float16)"
+
     output_names = [output.name for output in session.get_outputs()]
+
+    # Perform a warmup pass
+    print("Performing warmup pass...")
+    dummy_input = np.random.randn(1, 3, opt.img_size[0], opt.img_size[1]).astype(np.float32)
+    if use_fp16:
+        dummy_input = dummy_input.astype(np.float16)  # Convert to float16 if required
+    session.run(None, {input_name: dummy_input})
+    print("Warmup pass completed.")
+
+    # FPS test after warmup
+    print("Performing FPS test with dummy input...")
+    num_iterations = 100  # Number of iterations for the FPS test
+    start_time = time_synchronized()
+    for _ in range(num_iterations):
+        session.run(None, {input_name: dummy_input})
+    end_time = time_synchronized()
+    fps = num_iterations / (end_time - start_time)
+    print(f"FPS Test: {fps:.2f} frames per second")
 
     # Print ONNX model outputs for debugging
     print("ONNX Model Outputs:")
@@ -75,8 +99,7 @@ def detect(opt):
             'tl_yellow', 'tl_none', 'traffic sign', 'train']
 
 
-    # Determine if the model expects float16 inputs
-    use_fp16 = input_type == "tensor(float16)"
+   
 
     p = str(Path(opt.source))  # os-agnostic
     p = os.path.abspath(p)  # absolute path
@@ -94,20 +117,23 @@ def detect(opt):
                             (p, img_formats)
     
     total_inference_time = 0
+    total_preprocess_time = 0
+    total_postprocess_time = 0
     total_pipeline_time = 0
+    total_nms_time = 0
     num_frames = len(images)
 
     # Run inference
     for i, img_path in tqdm(enumerate(images), total=len(images)):
-        t_pre = time_synchronized()
         img = cv2.imread(img_path)
+        t_pre = time_synchronized()
         # Preprocess the image
         # convert to RGB
         height, width, _ = img.shape
         img_rgb = img[:, :, ::-1].copy()
 
         # resize & normalize
-        canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, (640, 640))
+        canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, opt.img_size)
 
         img = canvas.copy().astype(np.float32)  # (3,640,640) RGB
         img /= 255.0
@@ -124,18 +150,26 @@ def detect(opt):
         if use_fp16:
             img = img.astype(np.float16)  # Convert to float16 if required
 
+        t_pre_end = time_synchronized()
+        total_preprocess_time += (t_pre_end - t_pre)
+
         # Inference
         t_infer = time_synchronized()
         outputs = session.run(["det_out", "da_seg_out", "ll_seg_out"], {input_name: img})
         t_infer_end = time_synchronized()
         total_inference_time += (t_infer_end - t_infer)
 
+        t_post = time_synchronized()
+
         det_out, da_seg_out, ll_seg_out = outputs
         det_out = torch.from_numpy(det_out).float()
 
 
         # Post-process detection
+        t_nms = time_synchronized()
         det_pred = non_max_suppression(det_out, conf_thres=opt.conf_thres, iou_thres=opt.iou_thres, classes=None, agnostic=False)
+        t_nms_end = time_synchronized()
+        total_nms_time += (t_nms_end - t_nms)
         det = det_pred[0]
 
         if det.shape[0] == 0:
@@ -170,16 +204,25 @@ def detect(opt):
 
         # convert to BGR
         color_seg = color_seg[..., ::-1]
+        #color_seg = cv2.resize(color_seg, (width, height), interpolation=cv2.INTER_LINEAR)
         color_mask = np.mean(color_seg, 2)
+        #color_mask = cv2.resize(color_mask, (width, height), interpolation=cv2.INTER_LINEAR)
+
+        #img_merge = img_rgb[:, :, ::-1].copy()
+        #print(img_merge.shape)
+
         img_merge = canvas[dh:dh + new_unpad_h, dw:dw + new_unpad_w, :]
         img_merge = img_merge[:, :, ::-1]
 
-        # merge: resize to original size
+        # # merge: resize to original size
         img_merge[color_mask != 0] = \
-            img_merge[color_mask != 0] * 0.5 + color_seg[color_mask != 0] * 0.5
+           img_merge[color_mask != 0] * 0.5 + color_seg[color_mask != 0] * 0.5
         img_merge = img_merge.astype(np.uint8)
         img_merge = cv2.resize(img_merge, (width, height),
                             interpolation=cv2.INTER_LINEAR)
+
+        # print(img_merge.shape)
+
         for i in range(det.shape[0]):
             x1, y1, x2, y2, conf, label = det[i]
             x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
@@ -202,6 +245,7 @@ def detect(opt):
                                 interpolation=cv2.INTER_LINEAR)
         
         t_post_end = time_synchronized()
+        total_postprocess_time += (t_post_end - t_post)
         total_pipeline_time += (t_post_end - t_pre)
         
         save_path = str(opt.save_dir +'/'+ Path(img_path).name)
@@ -210,15 +254,19 @@ def detect(opt):
 
     fps_inference = num_frames / total_inference_time
     fps_pipeline = num_frames / total_pipeline_time
+    fps_nms = num_frames / total_nms_time
     print(f"Inference FPS: {fps_inference:.2f}")
+    print(f"Preprocessing FPS: {num_frames / total_preprocess_time:.2f}")
+    print(f"Post-processing FPS: {num_frames / total_postprocess_time:.2f}")
     print(f"Pipeline FPS (Preprocessing + Inference + Post-processing): {fps_pipeline:.2f}")
+    print(f"NMS FPS: {fps_nms:.2f}")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str, required=True, help='Path to ONNX model file')
     parser.add_argument('--source', type=str, default='inference/videos/1.mp4', help='Source file/folder')  # file/folder
-    parser.add_argument('--img-size', type=int, default=640, help='Inference size (pixels)')
+    parser.add_argument('--img-size', type=int, nargs=2, default=(640,640), help='Inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='Object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
     parser.add_argument('--save-dir', type=str, default='inference/output', help='Directory to save results')
