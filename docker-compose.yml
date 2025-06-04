@@ -1,0 +1,11 @@
+services:
+  dev:
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    shm_size: '4gb' # <--- Add this line!
+    tty: true
+    volumes:
+      - .:/work
+      - ../dataset:/dataset
