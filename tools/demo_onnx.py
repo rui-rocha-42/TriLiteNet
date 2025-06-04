@@ -140,22 +140,21 @@ def detect(opt):
 
         if det.shape[0] == 0:
             print("no bounding boxes detected.")
-            continue
+        else:
+            # scale coords to original size.
+            det[:, 0] -= dw
+            det[:, 1] -= dh
+            det[:, 2] -= dw
+            det[:, 3] -= dh
+            det[:, :4] /= r
 
-        # scale coords to original size.
-        det[:, 0] -= dw
-        det[:, 1] -= dh
-        det[:, 2] -= dw
-        det[:, 3] -= dh
-        det[:, :4] /= r
+            print(f"detect {det.shape[0]} bounding boxes.")
 
-        print(f"detect {det.shape[0]} bounding boxes.")
-
-        img_det = img_rgb[:, :, ::-1].copy()
-        for i in range(det.shape[0]):
-            x1, y1, x2, y2, conf, label = det[i]
-            x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
-            img_det = cv2.rectangle(img_det, (x1, y1), (x2, y2), (0, 255, 0), 2, 2)
+            img_det = img_rgb[:, :, ::-1].copy()
+            for i in range(det.shape[0]):
+                x1, y1, x2, y2, conf, label = det[i]
+                x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
+                img_det = cv2.rectangle(img_det, (x1, y1), (x2, y2), (0, 255, 0), 2, 2)
 
         # select da & ll segment area.
         da_seg_out = da_seg_out[:, :, dh:dh + new_unpad_h, dw:dw + new_unpad_w]
