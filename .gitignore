@@ -3,3 +3,6 @@ inference/
 weights/
 runs/
 onnx/
+trt_cache/
+*.pt
+*.pth

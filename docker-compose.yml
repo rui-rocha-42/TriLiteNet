@@ -4,8 +4,17 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    shm_size: '4gb' # <--- Add this line!
+    shm_size: '4gb'
     tty: true
     volumes:
       - .:/work
       - ../dataset:/dataset
+  tensorrt:
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: ./docker/tensorrt.Dockerfile
+    shm_size: '4gb'
+    tty: true
+    volumes:
+      - .:/work

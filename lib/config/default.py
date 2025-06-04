@@ -26,7 +26,7 @@ _C.MODEL = CN(new_allowed=True)
 _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
-_C.MODEL.PRETRAINED = "/work/weights/base.pth"  # path to pre-trained weights
+_C.MODEL.PRETRAINED = "/work/weights/nano.pth"  # path to pre-trained weights
 _C.MODEL.PRETRAINED_DET = ""
 _C.MODEL.IMAGE_SIZE = [640, 640] # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)

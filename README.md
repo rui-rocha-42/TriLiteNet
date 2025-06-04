@@ -137,9 +137,25 @@ python tools/convert_to_onnx.py --config '{tiny/small/base}' --weights 'weights/
 ## Demo ONNX model
 
 ```shell
-python tools/demo_onnx.py --weights 'weights/{tiny/small/base}.onnx' --source 'inference/images'
+python tools/demo_onnx.py --weights 'onnx/{tiny/small/base}.onnx' --source 'inference/images'
 ```
 
+## Demo ONNX model (TensorRT)
+
+To test the ONNX model using TensorRT, first run the Tensorrt docker container
+
+```shell
+docker compose build tensorrt
+docker compose run --rm tensorrt
+```
+
+and run the demo program
+
+```shell
+python tools/demo_onnx.py --model 'onnx/{tiny/small/base}.onnx' 
+```
+
+Currently it only uses a dummy input for a quick FPS test.
 
 ## Acknowledgements
 
