@@ -94,9 +94,10 @@ def detect(opt):
         print(f"Name: {output.name}, Shape: {output.shape}, Type: {output.type}")
 
     # Load class names
-    names = ['person', 'rider', 'car', 'bus', 'truck', 
-            'bike', 'motor', 'tl_green', 'tl_red', 
-            'tl_yellow', 'tl_none', 'traffic sign', 'train']
+    # names = ['person', 'rider', 'car', 'bus', 'truck', 
+    #         'bike', 'motor', 'tl_green', 'tl_red', 
+    #         'tl_yellow', 'tl_none', 'traffic sign', 'train']
+    names = ['forb_speed_over_50', 'forb_speed_over_80', 'info_crosswalk', 'prio_give_way', 'warn_other_dangers', 'prio_stop']
 
 
    

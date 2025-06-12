@@ -33,6 +33,8 @@ from lib.utils.utils import get_optimizer
 from lib.utils.utils import save_checkpoint
 from lib.utils.utils import create_logger, select_device
 from lib.utils import run_anchor
+from lib.models.common import SegmentHead, Detect, DetectHead
+
 def copy_attr(a, b, include=(), exclude=()):
     """Copies attributes from object b to a, optionally filtering with include and exclude lists."""
     for k, v in b.__dict__.items():
@@ -209,13 +211,27 @@ def main():
 
     # assign model params
     model.gr = 1.0
-    model.nc = 13
+    model.nc = 6
     # print('bulid model finished')
 
     # Freeze all layers except the detection head (remove if you want to train all layers)
-    #for name, param in model.named_parameters():
+    # for name, param in model.named_parameters():
     #    if f"model.{model.detector_index}" not in name:  # Adjust based on the detection head's name
     #        param.requires_grad = False
+
+    # Freeze all layers but the segmentation head
+    for param in model.parameters():
+        param.requires_grad = False
+
+    for name, module in model.named_modules():
+        if isinstance(module, DetectHead) or isinstance(module, Detect):
+            for param in module.parameters():
+                param.requires_grad = True
+
+    # for name, module in model.named_modules():
+    #     if isinstance(module, SegmentHead):
+    #         for param in module.parameters():
+    #             param.requires_grad = True
 
     #detector_layer = model.model[model.detector_index]  # Access the detector layer
     for name, param in model.named_parameters():

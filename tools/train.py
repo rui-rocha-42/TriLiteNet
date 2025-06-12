@@ -201,7 +201,7 @@ def main():
 
     # assign model params
     model.gr = 1.0
-    model.nc = 13
+    model.nc = 6
     # print('bulid model finished')
 
     ema = ModelEMA(model)

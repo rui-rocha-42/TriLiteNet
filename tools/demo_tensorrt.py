@@ -16,7 +16,7 @@ if not os.path.exists(model_path):
     raise FileNotFoundError(f"ONNX model file not found at {model_path}")
 
 # Example dummy input data
-dummy_input_shape = (1, 3, 640, 640)  # Replace with your model's expected input shape
+dummy_input_shape = (1, 3, 320, 320)  # Replace with your model's expected input shape
 dummy_input_dtype = np.float16
 dummy_input = np.random.rand(*dummy_input_shape).astype(dummy_input_dtype)
 

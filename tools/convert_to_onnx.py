@@ -54,9 +54,10 @@ def main(cfg,opt):
         model,
         dummy_input,
         save_path,
+        input_names=["input"],  # Input names for the ONNX model
         output_names=["det_out", "wtv1", "wtv2", "wtv3", "da_seg_out", "ll_seg_out"], # Output names for the ONNX model
-        opset_version=18,  # Specify the ONNX opset version
-        verbose=True,
+        opset_version=11,  # Specify the ONNX opset version
+        verbose=False,
         dynamic_axes=dynamic_axes,
         do_constant_folding=True,  # Enable constant folding for optimization
     )
@@ -67,7 +68,7 @@ def main(cfg,opt):
     onnx.checker.check_model(onnx_model)  # check onnx model
     #print(onnx.helper.printable_graph(onnx_model.graph))  # print
 
-    onnx_model, check = onnxsim.simplify(onnx_model)
+    onnx_model, check = onnxsim.simplify(onnx_model, check_n=3)
     assert check, 'assert check failed'
 
     # Remove unwanted outputs

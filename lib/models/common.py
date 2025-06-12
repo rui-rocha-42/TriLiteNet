@@ -309,7 +309,7 @@ class ConvBatchnormRelu(nn.Module):
         # output = self.conv1(output)
         output = self.bn(output)
         output = self.act(output)
-        if self.dropout:
+        if self.dropout is not None:
             output = self.dropout(output)
         return output
 

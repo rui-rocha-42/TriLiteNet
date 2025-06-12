@@ -6,11 +6,11 @@ _C = CN()
 
 _C.OUT_DIR = 'runs/'
 _C.GPUS = (0,)     
-_C.WORKERS = 4
+_C.WORKERS = 2
 _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
-_C.AUTO_RESUME =False       # Resume from the last training interrupt
-_C.NEED_AUTOANCHOR = True      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
+_C.AUTO_RESUME =True       # Resume from the last training interrupt
+_C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
 _C.num_seg_class = 2
 
@@ -26,7 +26,7 @@ _C.MODEL = CN(new_allowed=True)
 _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
-_C.MODEL.PRETRAINED = "/work/weights/nano.pth"  # path to pre-trained weights
+_C.MODEL.PRETRAINED = ""  # path to pre-trained weights
 _C.MODEL.PRETRAINED_DET = ""
 _C.MODEL.IMAGE_SIZE = [640, 640] # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)
@@ -53,10 +53,10 @@ _C.LOSS.TK_GAIN = 0.3  # segmentation loss gain
 # DATASET related params
 _C.DATASET = CN(new_allowed=True)
 
-_C.DATASET.DATAROOT = '/dataset/merged/images'       # the path of images folder
-_C.DATASET.LABELROOT = '/dataset/merged/det_annotations'      # the path of det_annotations folder
-_C.DATASET.MASKROOT = '/dataset/merged/da_seg_annotations'                # the path of da_seg_annotations folder
-_C.DATASET.LANEROOT = '/dataset/merged/ll_seg_annotations'               # the path of ll_seg_annotations folderpip in
+_C.DATASET.DATAROOT = '/dataset/trafficsigns_merged/images'       # the path of images folder
+_C.DATASET.LABELROOT = '/dataset/trafficsigns_merged/det_annotations'      # the path of det_annotations folder
+_C.DATASET.MASKROOT = '/dataset/trafficsigns_merged/da_seg_annotations'                # the path of da_seg_annotations folder
+_C.DATASET.LANEROOT = '/dataset/trafficsigns_merged/ll_seg_annotations'               # the path of ll_seg_annotations folderpip in
 
 
 _C.DATASET.DATASET = 'BddDataset'
@@ -64,7 +64,7 @@ _C.DATASET.TRAIN_SET = 'train'
 _C.DATASET.TEST_SET = 'val'
 _C.DATASET.DATA_FORMAT = 'jpg'
 _C.DATASET.SELECT_DATA = False
-_C.DATASET.ORG_IMG_SIZE = [720, 1280]
+_C.DATASET.ORG_IMG_SIZE = [640, 640] # 720, 1280
 
 # training data augmentation
 _C.DATASET.FLIP = True
@@ -95,10 +95,10 @@ _C.TRAIN.GAMMA1 = 0.99
 _C.TRAIN.GAMMA2 = 0.0
 
 _C.TRAIN.BEGIN_EPOCH = 0
-_C.TRAIN.END_EPOCH = 250
+_C.TRAIN.END_EPOCH = 100
 
 _C.TRAIN.VAL_FREQ = 1
-_C.TRAIN.BATCH_SIZE_PER_GPU =8
+_C.TRAIN.BATCH_SIZE_PER_GPU =2
 _C.TRAIN.START_VAL = 100
 _C.TRAIN.SHUFFLE = True
 

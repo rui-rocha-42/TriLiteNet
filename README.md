@@ -55,6 +55,8 @@ We recommend the dataset directory structure to be the following:
 
 Update the your dataset path in the `lib/config/default.py`.
 
+Download the traffic signs dataset from [traffic_signs](https://drive.google.com/drive/folders/1tOW5rblhS4lr5dMAV5-o-0JrrtptQ3cy?usp=sharing).
+
 ### Custom Datasets
 
 For custom datasets, use the tools in /tools to create a dataset in BDD100k format
@@ -68,7 +70,7 @@ python dataset/detection.py  --image_dir '{path to image directory}' --output_di
 You can also use view the object detections of a dataset by running the command
 
 ```shell
-python dataset/view.py  --image_dir '{path to image directory}' --output_dir '{path to detection annotations directory}'
+python dataset/view.py  --image_dir '{path to image directory}' --annotation_dir '{path to detection annotations directory}'
 ```
 
 #### Detection Annotations
@@ -103,6 +105,12 @@ You can find other useful scripts such as:
 
 ```shell
 ./dataset/merge.sh -d SOURCE_DIR -d SOURCE_DIR -m MERGED_DIR
+```
+
+* To filter a dataset by classes
+
+```shell
+python ./dataset/filter_dataset.py --dataset_dir DIRECTORY --output_dir  OUTPUT --class_names CLASS_NAMES
 ```
 
 ## Training

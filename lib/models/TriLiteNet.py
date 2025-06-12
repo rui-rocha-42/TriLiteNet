@@ -20,7 +20,7 @@ def TriLiteNet(model_cfg):
         [2, 4, 5],   #Det_out_idx, Da_Segout_idx, LL_Segout_idx
         [ -1, Encoder, [model_cfg]],   #0         /2
         [ -1, DetectHead, [model_cfg]],   #1         
-        [ -1, Detect,  [13, [[4,12,7,19,11,28], [17,40,25,58,38,89], [62,136,88,206,124,412]], [model_cfg['chanels'][3], model_cfg['chanels'][3], model_cfg['chanels'][3]]]], #2
+        [ -1, Detect,  [6, [[4,12,7,19,11,28], [17,40,25,58,38,89], [62,136,88,206,124,412]], [model_cfg['chanels'][3], model_cfg['chanels'][3], model_cfg['chanels'][3]]]], #2
         [ 0, SegmentHead, [model_cfg]], #3
         [ 3, UpSimpleBlock, [model_cfg['chanels'][0], 2]],  #4
         [ 3, UpSimpleBlock, [model_cfg['chanels'][0], 2]],   #5
@@ -52,10 +52,12 @@ class MultiTaskModel(nn.Module):
 
         self.model, self.save = nn.Sequential(*layers), sorted(save)
         self.names = [str(i) for i in range(self.nc)]
-        print("model names", self.names)
-        self.names = ['person', 'rider', 'car', 'bus', 'truck', 
-            'bike', 'motor', 'tl_green', 'tl_red', 
-            'tl_yellow', 'tl_none', 'traffic sign', 'train']
+        #print("model names", self.names)
+        # self.names = ['person', 'rider', 'car', 'bus', 'truck', 
+        #     'bike', 'motor', 'tl_green', 'tl_red', 
+        #     'tl_yellow', 'tl_none', 'traffic sign', 'train']
+        
+        self.names = ['forb_speed_over_50', 'forb_speed_over_80', 'info_crosswalk', 'prio_give_way', 'warn_other_dangers', 'prio_stop']
 
         # set stride、anchor for detector
         Detector = self.model[self.detector_index]  # detector
